@@ -1,0 +1,102 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7ff 0%, #eef3ff 100%);
+  color: #14213d;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.page {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #dbe4ff;
+  border-radius: 18px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 40px rgba(20, 33, 61, 0.08);
+}
+
+.hero-card {
+  background: linear-gradient(120deg, #163c85 0%, #4f7cf3 100%);
+  color: #ffffff;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  opacity: 0.9;
+}
+
+h1, h2 {
+  margin: 0 0 0.75rem;
+}
+
+.subtitle {
+  margin: 0;
+  max-width: 640px;
+  line-height: 1.6;
+  opacity: 0.95;
+}
+
+.stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+label {
+  font-weight: 600;
+}
+
+input {
+  padding: 0.8rem 0.95rem;
+  border: 1px solid #cad4ff;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  background: #2158d2;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.message {
+  margin-top: 1rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: 10px;
+}
+
+.error {
+  background: #ffe6e6;
+  color: #b42318;
+}
+
+.result-box {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: #f8faff;
+  border: 1px solid #e2eaff;
+}
+
+.result-box p {
+  margin: 0.3rem 0;
+}

@@ -1,0 +1,42 @@
+<main class="page">
+  <section class="card hero-card">
+    <div class="hero-copy">
+      <p class="eyebrow">Agentic URL Shortener</p>
+      <h1>Create short links and track their traffic.</h1>
+      <p class="subtitle">This UI talks to the Spring Boot API to shorten URLs and review click analytics in real time.</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Create a short URL</h2>
+    <form (ngSubmit)="createShortUrl()" class="stack">
+      <label for="destinationUrl">Destination URL</label>
+      <input id="destinationUrl" name="destinationUrl" [(ngModel)]="destinationUrl" type="url" placeholder="https://example.com" required />
+      <button type="submit" [disabled]="loading">{{ loading ? 'Creating...' : 'Create short URL' }}</button>
+    </form>
+
+    <div *ngIf="error" class="message error">{{ error }}</div>
+
+    <div *ngIf="result" class="result-box">
+      <p><strong>Code:</strong> {{ result.code }}</p>
+      <p><strong>Short URL:</strong> <a [href]="result.shortUrl" target="_blank" rel="noopener">{{ result.shortUrl }}</a></p>
+      <p><strong>Destination:</strong> {{ result.destinationUrl }}</p>
+      <p><strong>Created:</strong> {{ result.createdAt }}</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>View analytics</h2>
+    <form (ngSubmit)="loadAnalytics()" class="stack">
+      <label for="code">Short code</label>
+      <input id="code" name="code" [(ngModel)]="code" placeholder="Enter a short code" required />
+      <button type="submit" [disabled]="loading">{{ loading ? 'Loading...' : 'Load analytics' }}</button>
+    </form>
+
+    <div *ngIf="analytics" class="result-box">
+      <p><strong>Code:</strong> {{ analytics.code }}</p>
+      <p><strong>Total clicks:</strong> {{ analytics.totalClicks }}</p>
+      <p><strong>Range:</strong> {{ analytics.from }} to {{ analytics.to }}</p>
+    </div>
+  </section>
+</main>
