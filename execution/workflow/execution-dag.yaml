@@ -7,11 +7,11 @@ entry_conditions:
 nodes:
   - {id: requirements, type: Requirement, owner: requirements-analysis-agent, status: SUCCEEDED, exit: normalized_requirements}
   - {id: ambiguity, type: Decision, owner: ambiguity-resolution-agent, depends_on: [requirements], status: AWAITING_APPROVAL, gate: requirement_interpretation}
-  - {id: decomposition, type: Analysis, owner: task-decomposition-agent, depends_on: [requirements], status: READY}
+  - {id: decomposition, type: Analysis, owner: task-decomposition-agent, depends_on: [requirements], status: SUCCEEDED}
   - {id: architecture, type: Architecture, owner: architecture-agent, depends_on: [requirements], status: AWAITING_APPROVAL, gate: architecture_adr}
   - {id: api_schema, type: Approval, owner: api-schema-agent, depends_on: [architecture, ambiguity], status: BLOCKED, gate: public_api_schema}
-  - {id: test_prep, type: Test, owner: testing-agent, depends_on: [requirements], status: READY}
-  - {id: docs_prep, type: Documentation, owner: documentation-agent, depends_on: [requirements], status: READY}
+  - {id: test_prep, type: Test, owner: testing-agent, depends_on: [requirements], status: SUCCEEDED}
+  - {id: docs_prep, type: Documentation, owner: documentation-agent, depends_on: [requirements], status: SUCCEEDED}
   - {id: greenfield, type: Implementation, owner: greenfield-development-agent, depends_on: [decomposition, api_schema], status: BLOCKED}
   - {id: brownfield, type: Analysis, owner: brownfield-analysis-agent, depends_on: [greenfield], status: BLOCKED}
   - {id: implementation, type: Implementation, owner: implementation-agent, depends_on: [greenfield], status: BLOCKED}
