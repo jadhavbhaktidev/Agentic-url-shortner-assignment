@@ -28,8 +28,18 @@ public class UrlShortenerController {
             return ResponseEntity.badRequest().build();
         }
 
+        Instant expiresAt = null;
+        String expiresAtRaw = request.get("expiresAt");
+        if (expiresAtRaw != null && !expiresAtRaw.isBlank()) {
+            try {
+                expiresAt = Instant.parse(expiresAtRaw);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().build();
+            }
+        }
+
         try {
-            ShortUrl created = urlShortenerService.create(destinationUrl);
+            ShortUrl created = urlShortenerService.create(destinationUrl, expiresAt);
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                 "code", created.getCode(),
                 "shortUrl", urlShortenerService.buildShortUrl(created.getCode()),

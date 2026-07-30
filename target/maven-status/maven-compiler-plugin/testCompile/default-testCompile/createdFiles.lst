@@ -1,3 +1,4 @@
+com\agentic\urlshortener\service\UrlShortenerServiceTest.class
+com\agentic\urlshortener\controller\UrlShortenerControllerTest.class
 com\agentic\urlshortener\controller\HomePageTest.class
 com\agentic\urlshortener\controller\HealthEndpointTest.class
-com\agentic\urlshortener\controller\UrlShortenerControllerTest.class

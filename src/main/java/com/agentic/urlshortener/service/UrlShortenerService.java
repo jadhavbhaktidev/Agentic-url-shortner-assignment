@@ -30,10 +30,10 @@ public class UrlShortenerService {
     }
 
     @Transactional
-    public ShortUrl create(String destinationUrl) {
+    public ShortUrl create(String destinationUrl, Instant expiresAt) {
         validateDestination(destinationUrl);
         String code = generateCode();
-        ShortUrl entity = new ShortUrl(code, destinationUrl, Instant.now(), null);
+        ShortUrl entity = new ShortUrl(code, destinationUrl, Instant.now(), expiresAt);
         return shortUrlRepository.save(entity);
     }
 
@@ -69,6 +69,9 @@ public class UrlShortenerService {
     }
 
     private void validateDestination(String destinationUrl) {
+        if (destinationUrl.length() > 2048) {
+            throw new IllegalArgumentException("Destination URL exceeds maximum length");
+        }
         try {
             URI uri = new URI(destinationUrl);
             String scheme = uri.getScheme();

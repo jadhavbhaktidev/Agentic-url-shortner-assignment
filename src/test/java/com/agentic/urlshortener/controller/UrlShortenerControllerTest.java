@@ -93,4 +93,88 @@ class UrlShortenerControllerTest {
             .andExpect(jsonPath("$.code").value(shortUrl.getCode()))
             .andExpect(jsonPath("$.totalClicks").value(1));
     }
+
+    // T-02: malformed / oversized URL
+    @Test
+    void createShortUrl_shouldRejectMalformedUrl() throws Exception {
+        var request = Map.of("destinationUrl", "not-a-url-at-all");
+
+        mockMvc.perform(post("/api/v1/urls")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest());
+
+        assertThat(shortUrlRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    void createShortUrl_shouldRejectOversizedUrl() throws Exception {
+        String oversized = "https://example.com/" + "a".repeat(2048);
+        var request = Map.of("destinationUrl", oversized);
+
+        mockMvc.perform(post("/api/v1/urls")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest());
+
+        assertThat(shortUrlRepository.findAll()).isEmpty();
+    }
+
+    // T-02: no-host URL
+    @Test
+    void createShortUrl_shouldRejectUrlWithNoHost() throws Exception {
+        var request = Map.of("destinationUrl", "https:///path-only");
+
+        mockMvc.perform(post("/api/v1/urls")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest());
+    }
+
+    // T-05: redirect for expired code returns 404
+    @Test
+    void redirect_shouldReturn404ForExpiredCode() throws Exception {
+        Instant pastExpiry = Instant.now().minusSeconds(3600);
+        shortUrlRepository.save(new ShortUrl("expired1", "https://example.com", Instant.now().minusSeconds(7200), pastExpiry));
+
+        mockMvc.perform(get("/r/expired1"))
+            .andExpect(status().isNotFound());
+    }
+
+    // T-05: redirect for unknown code returns 404
+    @Test
+    void redirect_shouldReturn404ForUnknownCode() throws Exception {
+        mockMvc.perform(get("/r/nosuchcode"))
+            .andExpect(status().isNotFound());
+    }
+
+    // T-05: analytics for unknown code returns 404
+    @Test
+    void analytics_shouldReturn404ForUnknownCode() throws Exception {
+        mockMvc.perform(get("/api/v1/urls/nosuchcode/analytics"))
+            .andExpect(status().isNotFound());
+    }
+
+    // OpenAPI contract: expiresAt in create request
+    @Test
+    void createShortUrl_shouldAcceptExpiresAt() throws Exception {
+        String futureExpiry = Instant.now().plusSeconds(86400).toString();
+        var request = Map.of("destinationUrl", "https://example.com/expiring", "expiresAt", futureExpiry);
+
+        mockMvc.perform(post("/api/v1/urls")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.code").isNotEmpty());
+    }
+
+    @Test
+    void createShortUrl_shouldRejectInvalidExpiresAt() throws Exception {
+        var request = Map.of("destinationUrl", "https://example.com", "expiresAt", "not-a-date");
+
+        mockMvc.perform(post("/api/v1/urls")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isBadRequest());
+    }
 }

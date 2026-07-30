@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.agentic.urlshortener.controller.UrlShortenerControllerTest" time="0.432" tests="12" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.agentic.urlshortener.service.UrlShortenerServiceTest" time="0.268" tests="12" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="26"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -65,20 +65,16 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="70.0"/>
   </properties>
-  <testcase name="analytics_shouldExposeAggregatedClickCount" classname="com.agentic.urlshortener.controller.UrlShortenerControllerTest" time="0.189">
-    <system-out><![CDATA[2026-07-30T14:46:10.165+05:30  INFO 8972 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.agentic.urlshortener.controller.UrlShortenerControllerTest]: UrlShortenerControllerTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-07-30T14:46:10.170+05:30  INFO 8972 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.agentic.urlshortener.UrlShortenerApplication for test class com.agentic.urlshortener.controller.UrlShortenerControllerTest
-]]></system-out>
-  </testcase>
-  <testcase name="redirect_shouldReturn404ForExpiredCode" classname="com.agentic.urlshortener.controller.UrlShortenerControllerTest" time="0.022"/>
-  <testcase name="redirect_shouldReturnLocationAndRecordClick" classname="com.agentic.urlshortener.controller.UrlShortenerControllerTest" time="0.085"/>
-  <testcase name="analytics_shouldReturn404ForUnknownCode" classname="com.agentic.urlshortener.controller.UrlShortenerControllerTest" time="0.01"/>
-  <testcase name="createShortUrl_shouldRejectInvalidExpiresAt" classname="com.agentic.urlshortener.controller.UrlShortenerControllerTest" time="0.015"/>
-  <testcase name="createShortUrl_shouldRejectMalformedUrl" classname="com.agentic.urlshortener.controller.UrlShortenerControllerTest" time="0.017"/>
-  <testcase name="redirect_shouldReturn404ForUnknownCode" classname="com.agentic.urlshortener.controller.UrlShortenerControllerTest" time="0.007"/>
-  <testcase name="createShortUrl_shouldRejectInvalidDestinationUrl" classname="com.agentic.urlshortener.controller.UrlShortenerControllerTest" time="0.01"/>
-  <testcase name="createShortUrl_shouldRejectUrlWithNoHost" classname="com.agentic.urlshortener.controller.UrlShortenerControllerTest" time="0.008"/>
-  <testcase name="createShortUrl_shouldRejectOversizedUrl" classname="com.agentic.urlshortener.controller.UrlShortenerControllerTest" time="0.012"/>
-  <testcase name="createShortUrl_shouldAcceptExpiresAt" classname="com.agentic.urlshortener.controller.UrlShortenerControllerTest" time="0.012"/>
-  <testcase name="createShortUrl_shouldCreateAndReturnResourceForValidUrl" classname="com.agentic.urlshortener.controller.UrlShortenerControllerTest" time="0.018"/>
+  <testcase name="buildShortUrl_shouldUseConfiguredBase" classname="com.agentic.urlshortener.service.UrlShortenerServiceTest" time="0.215"/>
+  <testcase name="redirectAndRecordClick_shouldIncrementExistingBucket" classname="com.agentic.urlshortener.service.UrlShortenerServiceTest" time="0.01"/>
+  <testcase name="create_shouldRejectUrlWithNoHost" classname="com.agentic.urlshortener.service.UrlShortenerServiceTest" time="0.002"/>
+  <testcase name="redirectAndRecordClick_shouldReturnFalseForInactiveUrl" classname="com.agentic.urlshortener.service.UrlShortenerServiceTest" time="0.004"/>
+  <testcase name="create_shouldRetryOnCodeCollision" classname="com.agentic.urlshortener.service.UrlShortenerServiceTest" time="0.004"/>
+  <testcase name="isActiveAt_shouldReturnTrueWhenNoExpiry" classname="com.agentic.urlshortener.service.UrlShortenerServiceTest" time="0.001"/>
+  <testcase name="create_shouldRejectNonHttpSchemes(String)[1]" classname="com.agentic.urlshortener.service.UrlShortenerServiceTest" time="0.009"/>
+  <testcase name="create_shouldRejectNonHttpSchemes(String)[2]" classname="com.agentic.urlshortener.service.UrlShortenerServiceTest" time="0.001"/>
+  <testcase name="create_shouldRejectNonHttpSchemes(String)[3]" classname="com.agentic.urlshortener.service.UrlShortenerServiceTest" time="0.001"/>
+  <testcase name="create_shouldRejectNonHttpSchemes(String)[4]" classname="com.agentic.urlshortener.service.UrlShortenerServiceTest" time="0.001"/>
+  <testcase name="isActiveAt_shouldReturnFalseForExpiredUrl" classname="com.agentic.urlshortener.service.UrlShortenerServiceTest" time="0.001"/>
+  <testcase name="create_shouldRejectUrlExceeding2048Chars" classname="com.agentic.urlshortener.service.UrlShortenerServiceTest" time="0.002"/>
 </testsuite>
