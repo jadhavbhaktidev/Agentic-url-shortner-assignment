@@ -1,0 +1,23 @@
+{
+  "runId": "wf-20260730-001",
+  "projectState": "PAUSED",
+  "workflowStatus": "WAITING_APPROVAL",
+  "dagVersion": "1.0.0",
+  "repositoryStatus": {"configuredRoot": "Agentic-url-shortner", "branch": "main", "commit": null, "baseline": "NO_COMMITS", "reconciliationRequired": true},
+  "artifacts": [
+    {"id": "ART-REQ-001", "path": "docs/requirements/requirements-model.md", "producer": "requirements-analysis-agent", "status": "VALIDATED"},
+    {"id": "ART-ARC-001", "path": "docs/architecture/architecture-design.md", "producer": "architecture-agent", "status": "PROPOSED"},
+    {"id": "ART-API-001", "path": "openapi/openapi.yaml", "producer": "api-schema-agent", "status": "PROPOSED"}
+  ],
+  "approvals": [
+    {"id": "APR-001", "gate": "requirement_interpretation", "status": "PENDING", "requiredRole": "product_owner"},
+    {"id": "APR-002", "gate": "architecture_adr", "status": "PENDING", "requiredRole": "engineering_lead"},
+    {"id": "APR-003", "gate": "public_api_schema", "status": "PENDING", "requiredRole": "api_and_data_owner"},
+    {"id": "APR-004", "gate": "security_controls", "status": "PENDING", "requiredRole": "security_reviewer"}
+  ],
+  "risks": ["R-001 repository-root ambiguity", "R-002 unsafe redirect/SSRF", "R-003 analytics privacy", "R-004 stale downstream artifacts"],
+  "transitions": [
+    {"at": "2026-07-30T00:00:00Z", "from": "NEW", "to": "PAUSED", "actor": "master-orchestrator", "reason": "Control-plane artifacts prepared; protected gates await human decisions."}
+  ],
+  "retries": [], "fallbacks": [], "rollbacks": [], "validationStatus": "DESIGN_ONLY", "releaseStatus": "NOT_READY"
+}

@@ -1,0 +1,45 @@
+openapi: 3.0.3
+info:
+  title: URL Shortener API
+  version: 1.0.0-draft
+  description: Proposed public contract; approval required before implementation.
+paths:
+  /api/v1/urls:
+    post:
+      operationId: createShortUrl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CreateUrlRequest'}
+      responses:
+        '201': {description: Created, content: {application/json: {schema: {$ref: '#/components/schemas/UrlResource'}}}}
+        '400': {description: Invalid destination URL}
+        '429': {description: Rate limited}
+  /api/v1/urls/{code}/analytics:
+    get:
+      operationId: getUrlAnalytics
+      parameters: [{name: code, in: path, required: true, schema: {type: string}}]
+      responses:
+        '200': {description: Analytics aggregate, content: {application/json: {schema: {$ref: '#/components/schemas/Analytics'}}}}
+        '404': {description: Unknown URL}
+  /r/{code}:
+    get:
+      operationId: redirect
+      parameters: [{name: code, in: path, required: true, schema: {type: string}}]
+      responses:
+        '302': {description: Redirect}
+        '404': {description: Unknown or inactive URL}
+components:
+  schemas:
+    CreateUrlRequest:
+      type: object
+      required: [destinationUrl]
+      properties: {destinationUrl: {type: string, format: uri}, expiresAt: {type: string, format: date-time}}
+    UrlResource:
+      type: object
+      required: [code, shortUrl, destinationUrl, createdAt]
+      properties: {code: {type: string}, shortUrl: {type: string, format: uri}, destinationUrl: {type: string, format: uri}, createdAt: {type: string, format: date-time}}
+    Analytics:
+      type: object
+      properties: {code: {type: string}, totalClicks: {type: integer, format: int64}, from: {type: string, format: date-time}, to: {type: string, format: date-time}}

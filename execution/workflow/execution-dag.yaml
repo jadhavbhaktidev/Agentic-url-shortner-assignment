@@ -1,0 +1,31 @@
+version: 1.0.0
+workflow: url-shortener-agentic-sdlc
+run_id: wf-20260730-001
+entry_conditions:
+  - assignment_ingested
+  - repository_root_reconciled
+nodes:
+  - {id: requirements, type: Requirement, owner: requirements-analysis-agent, status: SUCCEEDED, exit: normalized_requirements}
+  - {id: ambiguity, type: Decision, owner: ambiguity-resolution-agent, depends_on: [requirements], status: AWAITING_APPROVAL, gate: requirement_interpretation}
+  - {id: decomposition, type: Analysis, owner: task-decomposition-agent, depends_on: [requirements], status: READY}
+  - {id: architecture, type: Architecture, owner: architecture-agent, depends_on: [requirements], status: AWAITING_APPROVAL, gate: architecture_adr}
+  - {id: api_schema, type: Approval, owner: api-schema-agent, depends_on: [architecture, ambiguity], status: BLOCKED, gate: public_api_schema}
+  - {id: test_prep, type: Test, owner: testing-agent, depends_on: [requirements], status: READY}
+  - {id: docs_prep, type: Documentation, owner: documentation-agent, depends_on: [requirements], status: READY}
+  - {id: greenfield, type: Implementation, owner: greenfield-development-agent, depends_on: [decomposition, api_schema], status: BLOCKED}
+  - {id: brownfield, type: Analysis, owner: brownfield-analysis-agent, depends_on: [greenfield], status: BLOCKED}
+  - {id: implementation, type: Implementation, owner: implementation-agent, depends_on: [greenfield], status: BLOCKED}
+  - {id: testing, type: Test, owner: testing-agent, depends_on: [implementation, test_prep], status: BLOCKED}
+  - {id: security, type: Security, owner: security-agent, depends_on: [implementation], status: BLOCKED, gate: security_controls}
+  - {id: performance, type: Validation, owner: performance-agent, depends_on: [implementation], status: BLOCKED}
+  - {id: reliability, type: Validation, owner: reliability-agent, depends_on: [implementation], status: BLOCKED}
+  - {id: documentation, type: Documentation, owner: documentation-agent, depends_on: [docs_prep, implementation], status: BLOCKED}
+  - {id: release_readiness, type: Release, owner: release-readiness-agent, depends_on: [testing, security, performance, reliability, documentation, brownfield], status: BLOCKED, gate: production_readiness}
+  - {id: governance_audit, type: Governance, owner: governance-audit-agent, depends_on: [release_readiness], status: BLOCKED}
+  - {id: final_summary, type: Synchronization, owner: final-summary-agent, depends_on: [governance_audit], status: BLOCKED, gate: release_approval}
+policies:
+  max_retries: 3
+  invalidation: "Changed requirements, ADR, API, or schema invalidate all descendant outputs; preserved outputs remain audit-visible but cannot satisfy a gate."
+  safe_stop: [critical_security_risk, compliance_violation, repository_root_untrusted, missing_required_approval, rollback_failure]
+  fallback_order: [alternative_agent, reduced_scope_with_approval, human_escalation, safe_halt]
+  rollback: "Revert scoped artifact/branch or execute approved forward corrective migration; validate create, redirect, analytics, and workflow state before resume."
