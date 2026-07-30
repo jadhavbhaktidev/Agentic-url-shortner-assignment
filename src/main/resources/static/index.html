@@ -5,19 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>URL Shortener</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 2rem; line-height: 1.5; }
-    .card { max-width: 640px; margin: 0 auto; padding: 1.5rem; border: 1px solid #ddd; border-radius: 8px; }
-    input, button { padding: 0.6rem; font-size: 1rem; margin-top: 0.5rem; }
-    #result { margin-top: 1rem; white-space: pre-wrap; }
+    body { font-family: Arial, sans-serif; margin: 2rem; line-height: 1.5; background: #f7f8fb; }
+    .card { max-width: 760px; margin: 0 auto; padding: 1.5rem; border: 1px solid #ddd; border-radius: 10px; background: white; }
+    .row { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-top: 0.75rem; }
+    input, button { padding: 0.65rem; font-size: 1rem; }
+    button { cursor: pointer; }
+    #result, #analytics { margin-top: 1rem; white-space: pre-wrap; background: #f9fafb; padding: 0.75rem; border-radius: 6px; }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>URL Shortener</h1>
-    <p>Create a short URL for an HTTP(S) destination.</p>
-    <input id="destination" size="50" placeholder="https://example.com" />
-    <button onclick="createShortUrl()">Create</button>
+    <p>Create a short URL for an HTTP(S) destination and inspect its analytics.</p>
+    <div class="row">
+      <input id="destination" size="48" placeholder="https://example.com" />
+      <button onclick="createShortUrl()">Create</button>
+    </div>
+    <div class="row">
+      <input id="code" size="24" placeholder="short code" />
+      <button onclick="loadAnalytics()">Load analytics</button>
+    </div>
     <div id="result"></div>
+    <div id="analytics"></div>
   </div>
   <script>
     async function createShortUrl() {
@@ -35,8 +44,25 @@
           throw new Error('Request failed');
         }
         result.textContent = JSON.stringify(data, null, 2);
+        document.getElementById('code').value = data.code || '';
       } catch (error) {
         result.textContent = error.message;
+      }
+    }
+
+    async function loadAnalytics() {
+      const code = document.getElementById('code').value;
+      const analytics = document.getElementById('analytics');
+      analytics.textContent = 'Loading...';
+      try {
+        const response = await fetch(`/api/v1/urls/${code}/analytics`);
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error('Analytics request failed');
+        }
+        analytics.textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        analytics.textContent = error.message;
       }
     }
   </script>

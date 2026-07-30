@@ -1,9 +1,10 @@
-com\agentic\urlshortener\domain\UrlStatus.class
 com\agentic\urlshortener\repository\ClickAggregateRepository.class
-com\agentic\urlshortener\service\UrlShortenerService.class
-com\agentic\urlshortener\config\AppProperties.class
 com\agentic\urlshortener\domain\ShortUrl.class
-com\agentic\urlshortener\repository\ShortUrlRepository.class
 com\agentic\urlshortener\domain\ClickAggregate.class
 com\agentic\urlshortener\controller\UrlShortenerController.class
 com\agentic\urlshortener\UrlShortenerApplication.class
+com\agentic\urlshortener\domain\UrlStatus.class
+com\agentic\urlshortener\service\UrlShortenerService.class
+com\agentic\urlshortener\config\AppProperties.class
+com\agentic\urlshortener\controller\HomeController.class
+com\agentic\urlshortener\repository\ShortUrlRepository.class
