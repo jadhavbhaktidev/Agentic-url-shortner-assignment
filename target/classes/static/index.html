@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>URL Shortener</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; line-height: 1.5; }
+    .card { max-width: 640px; margin: 0 auto; padding: 1.5rem; border: 1px solid #ddd; border-radius: 8px; }
+    input, button { padding: 0.6rem; font-size: 1rem; margin-top: 0.5rem; }
+    #result { margin-top: 1rem; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>URL Shortener</h1>
+    <p>Create a short URL for an HTTP(S) destination.</p>
+    <input id="destination" size="50" placeholder="https://example.com" />
+    <button onclick="createShortUrl()">Create</button>
+    <div id="result"></div>
+  </div>
+  <script>
+    async function createShortUrl() {
+      const destination = document.getElementById('destination').value;
+      const result = document.getElementById('result');
+      result.textContent = 'Creating...';
+      try {
+        const response = await fetch('/api/v1/urls', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ destinationUrl: destination })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error('Request failed');
+        }
+        result.textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        result.textContent = error.message;
+      }
+    }
+  </script>
+</body>
+</html>
