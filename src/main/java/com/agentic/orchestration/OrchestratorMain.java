@@ -2,28 +2,42 @@ package com.agentic.orchestration;
 
 import com.agentic.orchestration.engine.WorkflowExecutor;
 import com.agentic.orchestration.engine.ApprovalManager;
+import com.agentic.orchestration.engine.ExecutionPolicy;
+import com.agentic.orchestration.engine.FileWorkflowStateStore;
+import com.agentic.orchestration.engine.WorkflowStateStore;
 import com.agentic.orchestration.agents.*;
 import com.agentic.orchestration.model.WorkflowNode;
 import com.agentic.orchestration.model.WorkflowState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
+import java.nio.file.Path;
+import java.util.stream.Collectors;
 import java.util.*;
 
 public class OrchestratorMain {
     private static final Logger logger = LoggerFactory.getLogger(OrchestratorMain.class);
 
     public static void main(String[] args) throws Exception {
+        CliOptions options = CliOptions.parse(args);
+
         logger.info("╔════════════════════════════════════════════════════════════════╗");
         logger.info("║  Agentic URL Shortener Orchestrator - Workflow Execution        ║");
         logger.info("╚════════════════════════════════════════════════════════════════╝");
         logger.info("");
 
-        // 1. Initialize workflow state
-        String runId = "wf-" + System.currentTimeMillis();
-        WorkflowState state = new WorkflowState(runId, "1.0.0");
-        logger.info("✓ WorkflowState initialized: {}", runId);
+        // 1. Initialize workflow state store and workflow definition
+        WorkflowStateStore stateStore = new FileWorkflowStateStore(options.checkpointDir());
+        WorkflowState state;
+        if (options.resumeCheckpointPath() != null) {
+            state = stateStore.load(options.resumeCheckpointPath())
+                .orElseThrow(() -> new IllegalArgumentException("Checkpoint not found: " + options.resumeCheckpointPath()));
+            logger.info("✓ WorkflowState resumed from checkpoint: {}", options.resumeCheckpointPath());
+        } else {
+            String runId = "wf-" + System.currentTimeMillis();
+            state = new WorkflowDefinitionLoader().load(options.workflowDefinitionPath(), runId);
+            logger.info("✓ WorkflowState loaded from DAG: {}", options.workflowDefinitionPath());
+        }
 
         // 2. Initialize approval manager and set approvers
         ApprovalManager approvalManager = new ApprovalManager(state);
@@ -35,35 +49,37 @@ public class OrchestratorMain {
         logger.info("✓ Approvers configured (5 roles)");
 
         // 3. Initialize orchestration executor
-        WorkflowExecutor executor = new WorkflowExecutor(state, approvalManager);
+        ExecutionPolicy executionPolicy = buildExecutionPolicy(options);
+        WorkflowExecutor executor = new WorkflowExecutor(state, approvalManager, null, stateStore, executionPolicy);
         logger.info("✓ Orchestration executor initialized");
+        logger.info("✓ Execution policy mode: {}", options.executionMode());
 
         // 4. Register agents
         executor.registerAgent("requirements-analysis-agent", new RequirementsAnalysisAgent());
         executor.registerAgent("implementation-agent", new ImplementationAgent());
+        executor.registerAgent("validation-agent", new ValidationAgent());
         executor.registerAgent("testing-agent", new TestingAgent());
         executor.registerAgent("documentation-agent", new DocumentationAgent());
-        logger.info("✓ 4 agents registered:");
+        logger.info("✓ 5 agents registered:");
         logger.info("  - RequirementsAnalysisAgent");
         logger.info("  - ImplementationAgent");
+        logger.info("  - ValidationAgent");
         logger.info("  - TestingAgent");
         logger.info("  - DocumentationAgent");
 
-        // 5. Build workflow nodes (18-node DAG, simplified to 4 for demo)
-        Map<String, WorkflowNode> nodes = buildWorkflowDAG();
-        state.setNodes(nodes);
-        logger.info("✓ Workflow DAG built with {} nodes", nodes.size());
-
-        // 6. Initialize approvals (all pre-approved for demo)
-        List<WorkflowState.Approval> approvals = initializeApprovals();
-        state.setApprovals(approvals);
-        logger.info("✓ {} approval gates initialized and approved", approvals.size());
+        // 5. Initialize approvals if absent in checkpoint/workflow definition
+        if (state.getApprovals() == null || state.getApprovals().isEmpty()) {
+            List<WorkflowState.Approval> approvals = initializeApprovals();
+            state.setApprovals(approvals);
+            logger.info("✓ {} approval gates initialized and approved", approvals.size());
+        }
+        logger.info("✓ Workflow DAG loaded with {} nodes", state.getNodes().size());
 
         logger.info("");
         logger.info("Starting workflow execution...");
         logger.info("");
 
-        // 7. Execute workflow
+        // 6. Execute workflow
         long startTime = System.currentTimeMillis();
         try {
             executor.executeWorkflow();
@@ -79,35 +95,8 @@ public class OrchestratorMain {
         logger.info("╚════════════════════════════════════════════════════════════════╝");
         logger.info("");
 
-        // 8. Print results
+        // 7. Print results
         printResults(state, duration);
-    }
-
-    private static Map<String, WorkflowNode> buildWorkflowDAG() {
-        Map<String, WorkflowNode> nodes = new LinkedHashMap<>();
-
-        // Tier 1: Requirements Analysis
-        WorkflowNode requirements = new WorkflowNode("requirements", "Requirement", "requirements-analysis-agent");
-        requirements.setStatus(WorkflowNode.NodeStatus.READY);
-        requirements.setExit("normalized_requirements");
-        nodes.put("requirements", requirements);
-
-        // Tier 2: Implementation
-        WorkflowNode implementation = new WorkflowNode("implementation", "Implementation", "implementation-agent");
-        implementation.setDependsOn(List.of("requirements"));
-        nodes.put("implementation", implementation);
-
-        // Tier 3: Testing
-        WorkflowNode testing = new WorkflowNode("testing", "Test", "testing-agent");
-        testing.setDependsOn(List.of("implementation"));
-        nodes.put("testing", testing);
-
-        // Tier 4: Documentation & Release
-        WorkflowNode documentation = new WorkflowNode("documentation", "Documentation", "documentation-agent");
-        documentation.setDependsOn(List.of("testing"));
-        nodes.put("documentation", documentation);
-
-        return nodes;
     }
 
     private static List<WorkflowState.Approval> initializeApprovals() {
@@ -209,5 +198,75 @@ public class OrchestratorMain {
         logger.info("  3. If all gates approved, proceed to release");
         logger.info("  4. For details, see execution/reports/final-engineering-summary.md");
         logger.info("");
+    }
+
+    private static ExecutionPolicy buildExecutionPolicy(CliOptions options) {
+        ExecutionPolicy.ExecutionMode mode = "PLAN_ONLY".equalsIgnoreCase(options.executionMode())
+            ? ExecutionPolicy.ExecutionMode.PLAN_ONLY
+            : ExecutionPolicy.ExecutionMode.EXECUTE;
+        return new ExecutionPolicy(
+            mode,
+            options.approvalRequiredNodeTypes(),
+            options.approvalRequiredOwners(),
+            options.failClosedOnMissingGate()
+        );
+    }
+
+    private record CliOptions(
+        Path workflowDefinitionPath,
+        Path checkpointDir,
+        Path resumeCheckpointPath,
+        String executionMode,
+        Set<String> approvalRequiredNodeTypes,
+        Set<String> approvalRequiredOwners,
+        boolean failClosedOnMissingGate
+    ) {
+        private static CliOptions parse(String[] args) {
+            Path workflowPath = Path.of("execution", "workflow", "execution-dag.yaml");
+            Path checkpointDirectory = Path.of("execution", "state");
+            Path resumePath = null;
+            String executionMode = "EXECUTE";
+            Set<String> approvalRequiredTypes = new LinkedHashSet<>(Set.of("Implementation", "Security", "Release", "Governance"));
+            Set<String> approvalRequiredOwners = new LinkedHashSet<>(Set.of("implementation-agent", "security-agent", "release-readiness-agent"));
+            boolean failClosed = true;
+
+            for (String arg : args) {
+                if (arg.startsWith("--dag=")) {
+                    workflowPath = Path.of(arg.substring("--dag=".length()));
+                } else if (arg.startsWith("--checkpoint-dir=")) {
+                    checkpointDirectory = Path.of(arg.substring("--checkpoint-dir=".length()));
+                } else if (arg.startsWith("--resume=")) {
+                    resumePath = Path.of(arg.substring("--resume=".length()));
+                } else if (arg.startsWith("--mode=")) {
+                    executionMode = arg.substring("--mode=".length()).toUpperCase(Locale.ROOT);
+                } else if (arg.startsWith("--approval-required-types=")) {
+                    approvalRequiredTypes = parseCsv(arg.substring("--approval-required-types=".length()));
+                } else if (arg.startsWith("--approval-required-owners=")) {
+                    approvalRequiredOwners = parseCsv(arg.substring("--approval-required-owners=".length()));
+                } else if (arg.equals("--fail-open-missing-gate")) {
+                    failClosed = false;
+                }
+            }
+
+            return new CliOptions(
+                workflowPath,
+                checkpointDirectory,
+                resumePath,
+                executionMode,
+                approvalRequiredTypes,
+                approvalRequiredOwners,
+                failClosed
+            );
+        }
+
+        private static Set<String> parseCsv(String raw) {
+            if (raw == null || raw.isBlank()) {
+                return Collections.emptySet();
+            }
+            return Arrays.stream(raw.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        }
     }
 }

@@ -18,6 +18,11 @@ public class WorkflowNode {
     private int retryCount;
     private String lastError;
 
+    public WorkflowNode() {
+        this.dependsOn = new java.util.ArrayList<>();
+        this.status = NodeStatus.PENDING;
+    }
+
     public enum NodeStatus {
         PENDING, READY, RUNNING, SUCCEEDED, FAILED, BLOCKED, AWAITING_APPROVAL, ROLLBACK
     }
@@ -33,8 +38,11 @@ public class WorkflowNode {
 
     // Getters and setters
     public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
     public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
     public String getOwner() { return owner; }
+    public void setOwner(String owner) { this.owner = owner; }
     public NodeStatus getStatus() { return status; }
     public void setStatus(NodeStatus status) { this.status = status; }
     public List<String> getDependsOn() { return dependsOn; }
@@ -50,6 +58,7 @@ public class WorkflowNode {
     public Instant getCompletedAt() { return completedAt; }
     public void setCompletedAt(Instant completedAt) { this.completedAt = completedAt; }
     public int getRetryCount() { return retryCount; }
+    public void setRetryCount(int retryCount) { this.retryCount = retryCount; }
     public void incrementRetryCount() { this.retryCount++; }
     public String getLastError() { return lastError; }
     public void setLastError(String lastError) { this.lastError = lastError; }
